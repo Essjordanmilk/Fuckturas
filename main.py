@@ -34,10 +34,15 @@ async def procesar_factura(request: Request):
         # 2. Configurar el modelo Gemini
         model = genai.GenerativeModel('gemini-1.5-flash')
 
-        # 3. Preparar los datos de la imagen para la API de Gemini
-        # Nota: Asumimos jpeg por defecto, funciona bien para la mayoría de fotos de Telegram
+        # 3. Detectar de forma automática el tipo de imagen según los primeros bytes
+        tipo_mime = "image/jpeg"
+        if contenido_imagen.startswith(b'\x89PNG'):
+            tipo_mime = "image/png"
+        elif contenido_imagen.startswith(b'\x47\x49\x46'):
+            tipo_mime = "image/gif"
+
         datos_imagen = {
-            "mime_type": "image/jpeg",
+            "mime_type": tipo_mime,
             "data": contenido_imagen
         }
 
@@ -58,7 +63,9 @@ async def procesar_factura(request: Request):
         )
 
         # 6. Parsear la respuesta de texto a un JSON real y validarlo
-        datos_extraidos = json.loads(response.text)
+        # Eliminamos posibles caracteres extraños o bloques de código markdown que a veces añade la IA
+        texto_limpio = response.text.strip().replace("```json", "").replace("```", "")
+        datos_extraidos = json.loads(texto_limpio)
         
         # Devolver la respuesta limpia a n8n
         return datos_extraidos
