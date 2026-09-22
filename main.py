@@ -32,7 +32,7 @@ async def procesar_factura(request: Request):
             raise HTTPException(status_code=400, detail="No se recibieron datos de imagen")
 
         # 2. Configurar el modelo Gemini
-        model = genai.GenerativeModel('gemini-2.5-flash')
+        model = genai.GenerativeModel('gemini-3.6-flash')
 
         # 3. Detectar de forma automática el tipo de imagen según los primeros bytes
         tipo_mime = "image/jpeg"
